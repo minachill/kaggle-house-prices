@@ -44,7 +44,7 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df["Qual_TotalSF"] = df["OverallQual"] * df["TotalSF"]
     df["Qual_GrLivArea"] = df["OverallQual"] * df["GrLivArea"]
     df["Qual_Kitchen"] = df["OverallQual"] * df["KitchenQual_num"]
-    df["KitchenScore"] = df["KitchenQual_num"] / df["KitchenAbvGr"]
+    df["KitchenScore"] = df["KitchenQual_num"] / df["KitchenAbvGr"].replace(0, 1)
 
     # 年数
     df["HouseAge"] = df["YrSold"] - df["YearBuilt"]
