@@ -101,6 +101,14 @@ def run_cv(
     return metrics, imp.sort_values("imp", ascending=False)
 
 
+def seed_everything(seed=123):
+    import random
+    import os
+    random.seed(seed)
+    np.random.seed(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
+
+
 def rmse(y_true, y_pred) -> float:
     return np.sqrt(mean_squared_error(y_true, y_pred))
 
