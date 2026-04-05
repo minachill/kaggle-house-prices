@@ -1,12 +1,15 @@
 import copy
+import os
+import random
+from typing import Any
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import KFold
 import lightgbm as lgb
 import xgboost as xgb
 from catboost import CatBoostRegressor
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import KFold
 
 
 
@@ -18,20 +21,11 @@ def run_cv(
     random_state: int = 123,
 ) -> tuple[np.ndarray, pd.DataFrame]:
     """
-    KFold CV を実行する。LightGBM / XGBoost / CatBoost に対応。
+    KFold Cross Validation を実行し、foldごとの学習/検証RMSEと特徴量重要度を返す。
 
-    Parameters
-    ----------
-    model : sklearn-compatible estimator
-        LGBMRegressor, XGBRegressor, CatBoostRegressor など。
-        各 fold で deepcopy して使用する。
-
-    Returns
-    -------
-    metrics : np.ndarray, shape (n_splits, 3)
-        各 fold の [fold, rmse_train, rmse_val]
-    imp : pd.DataFrame
-        特徴量重要度 (fold 平均)
+    - LightGBM / XGBoost / CatBoost では early stopping を適用
+    - 線形モデルでは係数の絶対値を特徴量重要度の近似値として扱う
+    - すべてのモデルで同一の分割方針を用いて比較する
     """
     is_lgbm = isinstance(model, lgb.LGBMRegressor)
 
@@ -50,7 +44,7 @@ def run_cv(
                 x_tr, y_tr,
                 eval_set=[(x_tr, y_tr), (x_va, y_va)],
                 callbacks=[
-                    lgb.early_stopping(stopping_rounds=100, verbose=True),
+                    lgb.early_stopping(stopping_rounds=100, verbose=False),
                     lgb.log_evaluation(0),
                 ],
             )
@@ -101,25 +95,25 @@ def run_cv(
     return metrics, imp.sort_values("imp", ascending=False)
 
 
-def seed_everything(seed=123):
-    import random
-    import os
+def seed_everything(seed=123) -> None:
+    """乱数シードを固定し、実験の再現性を高める。"""
     random.seed(seed)
     np.random.seed(seed)
     os.environ["PYTHONHASHSEED"] = str(seed)
 
 
 def rmse(y_true, y_pred) -> float:
+    """RMSE を計算する。"""
     return np.sqrt(mean_squared_error(y_true, y_pred))
 
 
 def make_submission(
-    model: lgb.LGBMRegressor,
+    model: Any,
     X_test: pd.DataFrame,
     test_ids: pd.Series,
     filepath: str,
 ) -> pd.DataFrame:
-    """予測値を log1p 逆変換して submission CSV を保存する"""
+    """モデル予測を expm1 で逆変換し、submission CSV を保存する。"""
     y_pred = np.expm1(model.predict(X_test))
     df_submit = pd.DataFrame({"Id": test_ids, "SalePrice": y_pred})
     df_submit.to_csv(filepath, index=False)
