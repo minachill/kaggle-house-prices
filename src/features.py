@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.model_selection import KFold
 
 
+
 QUAL_MAP = {"Po": 1, "Fa": 2, "TA": 3, "Gd": 4, "Ex": 5}
 
 GARAGE_FINISH_MAP = {"None": 0, "Unf": 1, "RFn": 2, "Fin": 3}
@@ -14,7 +15,7 @@ FUNCTIONAL_MAP = {
 
 
 def add_area_features(df: pd.DataFrame) -> pd.DataFrame:
-    """面積・風呂の特徴量を追加"""
+    """面積・浴室数に関する特徴量を追加する。住宅規模の総量を捉えることが目的。"""
     df = df.copy()
     df["TotalSF"] = df["GrLivArea"] + df["TotalBsmtSF"]
     df["TotalPorchSF"] = (
@@ -34,7 +35,7 @@ def add_area_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def add_quality_features(df: pd.DataFrame) -> pd.DataFrame:
-    """品質系の特徴量を追加"""
+    """品質評価と面積を組み合わせた特徴量を追加する。広さだけでなく質の差も反映させる。"""
     df = df.copy()
     df["KitchenQual_num"] = df["KitchenQual"].map(QUAL_MAP).astype(float)
     df["BsmtQual_num"] = df["BsmtQual"].map(QUAL_MAP)
@@ -49,7 +50,7 @@ def add_quality_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def add_age_features(df: pd.DataFrame) -> pd.DataFrame:
-    """年数・効率系の特徴量を追加"""
+    """築年数やリフォーム経過年数、部屋あたり面積などの効率系特徴量を追加する。"""
     df = df.copy()
     df["HouseAge"] = df["YrSold"] - df["YearBuilt"]
     df["RemodAge"] = df["YrSold"] - df["YearRemodAdd"]
@@ -62,7 +63,7 @@ def add_age_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def add_basement_features(df: pd.DataFrame) -> pd.DataFrame:
-    """地下・ガレージ系の特徴量を追加"""
+    """地下室とガレージに関する特徴量を追加する。付帯設備の広さや完成度を捉えることが目的。"""
     df = df.copy()
     df["BsmtQual_TotalSF"] = df["TotalBsmtSF"] * df["OverallQual"]
     df["Bsmt_Liv"] = df["TotalBsmtSF"] * df["GrLivArea"]
@@ -73,7 +74,7 @@ def add_basement_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def add_flag_features(df: pd.DataFrame) -> pd.DataFrame:
-    """フラグ・合成スコア・ordinal encoding・土地の特徴量を追加"""
+    """存在フラグ、序数化スコア、土地関連の補助特徴量を追加する。"""
     df = df.copy()
     df["HasPool"] = (df["PoolArea"] > 0).astype(int)
     df["HasBsmt"] = (df["TotalBsmtSF"] > 0).astype(int)
@@ -97,7 +98,7 @@ def add_flag_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def add_features(df: pd.DataFrame) -> pd.DataFrame:
-    """全特徴量を追加する統合関数"""
+    """定義済みの特徴量生成関数を順に適用し、基本特徴量群をまとめて追加する。"""
     df = add_area_features(df)
     df = add_quality_features(df)
     df = add_age_features(df)
@@ -110,7 +111,7 @@ def add_neighborhood_features(
     df: pd.DataFrame,
     train: pd.DataFrame,
 ) -> pd.DataFrame:
-    """Neighborhood統計特徴量を追加"""
+    """Neighborhood 単位の統計特徴量を追加する。学習データ基準で算出し、リークを防ぐ。"""
     df = df.copy()
     neigh_freq = train["Neighborhood"].value_counts()
     neigh_mean = train.groupby("Neighborhood")["GrLivArea"].mean()
@@ -128,9 +129,9 @@ def kfold_target_encode(
     target: str,
     n_splits: int = 5,
     shuffle: bool = True,
-    random_state: int = 42,
+    random_state: int = 123,
 ) -> tuple[pd.Series, pd.Series]:
-    """KFold Target Encoding（リーク防止）"""
+    """KFold ベースで Target Encoding を行い、学習データへのリークを防ぐ。"""
     train_df = train_df.copy()
     test_df = test_df.copy()
     kf = KFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state)
@@ -152,7 +153,7 @@ def add_target_encoding_features(
     test: pd.DataFrame,
     target_col: str = "SalePrice",
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Neighborhood の KFold Target Encoding と派生特徴量を追加"""
+    """Neighborhood の Target Encoding と、その派生特徴量を追加する。"""
     train = train.copy()
     test = test.copy()
     train["Neighborhood_TE"], test["Neighborhood_TE"] = kfold_target_encode(
@@ -167,7 +168,7 @@ def add_target_encoding_features(
         df["Neighborhood_TotalQual_SF"] = df["Neighborhood_TE"] * df["TotalQual_SF"]
     return train, test
 
-
+# モデル学習に使用する最終採用特徴量一覧
 FEATURES = [
     "OverallQual", "GrLivArea", "TotalSF_with_porch", "TotalBath",
     "TotalQual_SF", "Neighborhood_TotalQual_SF", "HouseAge", "RemodAge",
