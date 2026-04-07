@@ -61,6 +61,7 @@ def run_cv(
                 x_tr, y_tr,
                 cat_features=cat_features,
                 eval_set=(x_va, y_va),
+                early_stopping_rounds=100,
                 verbose=False,
             )
         else:
