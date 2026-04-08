@@ -42,7 +42,7 @@ def run_cv(
         if is_lgbm:
             fold_model.fit(
                 x_tr, y_tr,
-                eval_set=[(x_tr, y_tr), (x_va, y_va)],
+                eval_set=[(x_va, y_va)],
                 callbacks=[
                     lgb.early_stopping(stopping_rounds=100, verbose=False),
                     lgb.log_evaluation(0),
@@ -95,6 +95,56 @@ def run_cv(
     imp.columns = ["imp", "imp_std"]
     return metrics, imp.sort_values("imp", ascending=False)
 
+def run_oof(
+    model,
+    X_train: pd.DataFrame,
+    y_train: pd.Series,
+    n_splits: int = 5,
+    random_state: int = 123,
+) -> np.ndarray:
+    """KFold の OOF 予測を返す。fit 条件は run_cv と同一。"""
+    cv = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+    oof = np.zeros(len(y_train))
+
+    for nfold, (train_idx, val_idx) in enumerate(cv.split(X_train)):
+        x_tr, y_tr = X_train.iloc[train_idx], y_train.iloc[train_idx]
+        x_va = X_train.iloc[val_idx]
+
+        fold_model = copy.deepcopy(model)
+
+        if isinstance(fold_model, lgb.LGBMRegressor):
+            fold_model.fit(
+                x_tr, y_tr,
+                eval_set=[(x_va, y_train.iloc[val_idx])],
+                callbacks=[
+                    lgb.early_stopping(stopping_rounds=100, verbose=False),
+                    lgb.log_evaluation(0),
+                ],
+            )
+        elif isinstance(fold_model, xgb.XGBRegressor):
+            fold_model.set_params(early_stopping_rounds=100)
+            fold_model.fit(
+                x_tr, y_tr,
+                eval_set=[(x_va, y_train.iloc[val_idx])],
+                verbose=False,
+            )
+        elif isinstance(fold_model, CatBoostRegressor):
+            cat_features = [col for col in x_tr.columns
+                           if x_tr[col].dtype.name == "category"]
+            fold_model.fit(
+                x_tr, y_tr,
+                cat_features=cat_features,
+                eval_set=(x_va, y_train.iloc[val_idx]),
+                early_stopping_rounds=100,
+                verbose=False,
+            )
+        else:
+            fold_model.fit(x_tr, y_tr)
+
+        oof[val_idx] = fold_model.predict(x_va)
+        print(f"[fold {nfold}] done")
+
+    return oof
 
 def seed_everything(seed=123) -> None:
     """乱数シードを固定し、実験の再現性を高める。"""
