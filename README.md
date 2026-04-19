@@ -112,7 +112,7 @@ kaggle-house-prices/
 
 | カテゴリ | 技術 |
 |---|---|
-| 言語 | Python |
+| 言語 | Python 3.13 |
 | 木系モデル | LightGBM, XGBoost, CatBoost |
 | 線形モデル | Lasso, ElasticNet, Ridge |
 | ハイパーパラメータ最適化 | Optuna |
