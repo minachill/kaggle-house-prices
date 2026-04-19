@@ -130,15 +130,22 @@ git clone https://github.com/minachill/kaggle-house-prices.git
 cd kaggle-house-prices
 ```
 
-2. [Kaggle のデータページ](https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/data)から `train.csv`, `test.csv` をダウンロードし、`data/` に配置する
+2. データ・提出ファイル用のフォルダを作成する
 
-3. 必要ライブラリをインストールする
+```bash
+mkdir -p data submissions
+```
+
+3. [Kaggle のデータページ](https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/data)から `train.csv`, `test.csv` をダウンロードし、`data/` に配置する
+
+4. 必要ライブラリをインストールする
 
 ```bash
 pip install -r requirements.txt
 ```
 
-4. ノートブックを番号順（`00_baseline.ipynb` → `05_ensemble.ipynb`）に実行する
+5. ノートブックを番号順（`00_baseline.ipynb` → `05_ensemble.ipynb`）に実行する
+提出ファイルは `submissions/` に生成される
 
 ※ `00_baseline.ipynb` は `src/` に依存せず、ノートブック単体で実行できる。
 `01` 以降のノートブックでは `src/` の関数を利用している。
