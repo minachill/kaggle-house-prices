@@ -58,7 +58,7 @@ def impute_missing(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def convert_types(df: pd.DataFrame) -> pd.DataFrame:
+def convert_object_to_category(df: pd.DataFrame) -> pd.DataFrame:
     """
     object 型の列を category 型へ変換する。
 
