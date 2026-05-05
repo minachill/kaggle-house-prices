@@ -30,12 +30,12 @@
 
 | No. | ノートブック | 内容 | 主な成果 |
 |---|---|---|---|
-| 00 | Baseline | 最小構成（2変数 + LightGBM）でベースラインを構築 | CV 0.21155 / LB 0.21813 |
-| 01 | EDA | 目的変数の分布、相関、外れ値、多重共線性、歪度、欠損値、Neighborhood 別価格差を確認 | 後続の前処理・特徴量設計の仮説を整理 |
-| 02 | Preprocessing | 欠損値補完（4 方針）と型変換 | 欠損の意味に応じた補完で情報を保持 |
-| 03 | Feature Engineering | 基本派生 → Neighborhood TE → 元カラム再追加 → 不採用施策の検証 | CV 0.21155 → 0.12913 / LB 0.21813 → 0.13057 |
-| 04 | Modeling | 木系 3 モデル + 線形 3 モデルを比較、Optuna によるハイパーパラメータ最適化 | 各モデルの特性と予測傾向の違いを把握 |
-| 05 | Ensemble | 予測相関の確認、単純平均 vs 加重平均の比較 | CV 0.11686 / LB 0.12022（単純平均を採用） |
+| 00 | [Baseline](notebooks/00_baseline.ipynb) | 最小構成（2変数 + LightGBM）でベースラインを構築 | CV 0.21155 / LB 0.21813 |
+| 01 | [EDA](notebooks/01_EDA.ipynb) | 目的変数の分布、相関、外れ値、多重共線性、歪度、欠損値、Neighborhood 別価格差を確認 | 後続の前処理・特徴量設計の仮説を整理 |
+| 02 | [Preprocessing](notebooks/02_preprocessing.ipynb) | 欠損値補完（4 方針）と型変換 | 欠損の意味に応じた補完で情報を保持 |
+| 03 | [Feature Engineering](notebooks/03_feature_engineering.ipynb) | 基本派生 → Neighborhood TE → 元カラム再追加 → 不採用施策の検証 | CV 0.21155 → 0.12913 / LB 0.21813 → 0.13057 |
+| 04 | [Modeling](notebooks/04_modeling.ipynb) | 木系 3 モデル + 線形 3 モデルを比較、Optuna によるハイパーパラメータ最適化 | 各モデルの特性と予測傾向の違いを把握 |
+| 05 | [Ensemble](notebooks/05_ensemble.ipynb) | 予測相関の確認、単純平均 vs 加重平均の比較 | CV 0.11686 / LB 0.12022（単純平均を採用） |
 
 ### 特徴量エンジニアリングの方針
 
@@ -148,4 +148,4 @@ pip install -r requirements.txt
 提出ファイルは `submissions/` に生成される
 
 ※ `00_baseline.ipynb` は `src/` に依存せず、ノートブック単体で実行できる。
-`01` 以降のノートブックでは `src/` の関数を利用している。
+`01` 以降のノートブックでは `src/` の関数を利用している。git
