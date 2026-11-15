@@ -1,0 +1,6 @@
+.DS_Store
+__pycache__/
+*.pyc
+submissions/*.csv
+data/*.csv
+catboost_info/
